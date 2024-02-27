@@ -1,41 +1,68 @@
 from django.shortcuts import render
 from bs4 import BeautifulSoup
-from .models import Link
+from .models import Link, Page
 import requests
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
-
+from django.urls import reverse
 # Create your views here.
 
 def scrape(request):
     error_message = None  # Initialize error message
+    pages = Page.objects.all()
     if request.method == 'POST':
-        if Link.objects.all().count() > 0:
-            Link.objects.all().delete()
-        site = request.POST.get('site', '')
+
+        if request.POST.get('selected_item'):
+            site = request.POST.get('selected_item')
+        else:
+            site = request.POST.get('site', '')
+
         try:
             page = requests.get(site)
             page.raise_for_status()  # Raise HTTPError for bad status codes
         except requests.exceptions.RequestException as e:
             error_message = f'Failed to fetch page: {e}'  # Set error message
             links = Link.objects.all()  # Fetch existing links
-            return render(request, 'main/result.html', {'error_message': error_message, 'links': links})
+            return render(request, 'main/result.html', {'error_message': error_message, 'links': links, 'pages': pages})
 
         soup = BeautifulSoup(page.text, 'html.parser')
+
+        title_tag = soup.find('h1')
+        print(title_tag.string)
+
+        if Page.objects.filter(url=site).exists():
+            new_page = Page.objects.get(url=site)
+            new_page.title = title_tag.string
+            new_page.save()
+        else:
+            new_page = Page.objects.create(url=site, title=title_tag.string)
+        
+        new_page.link_set.all().delete()
+
+
 
         for link in soup.find_all('a', class_='chapter-name'):
             link_url = link.get('href')
             link_title = link.string
-            Link.objects.create(url=link_url, title=link_title)
+            
+            Link.objects.create(url=link_url, title=link_title, page= new_page)
+        
 
-        return HttpResponseRedirect('/')
+        
+
+        links = Link.objects.filter(page=new_page)
+        return render(request, 'main/result.html', {'error_message': error_message, 'links': links, 'pages': pages,'selected_page_title': title_tag.string})
+
     else:
-        links = Link.objects.all()
-        return render(request, 'main/result.html', {'error_message': error_message, 'links': links})
+        links = Page.objects.first().link_set.all()
+        
+        return render(request, 'main/result.html', {'error_message': error_message, 'links': links, 'pages': pages})
     
 def delete(request):
     Link.objects.all().delete()
     return render(request, 'main/result.html', {'links': []})
+
+
 
 # def add_to_list(request):
 #     if request.method == 'POST':
