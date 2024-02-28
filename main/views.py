@@ -31,21 +31,29 @@ def scrape(request):
         print(title_tag.string)
 
         if Page.objects.filter(url=site).exists():
-            new_page = Page.objects.get(url=site)
-            new_page.title = title_tag.string
-            new_page.save()
+            existing_page = Page.objects.get(url=site)
+            existing_page.title = title_tag.string
+            existing_page.save()
         else:
-            new_page = Page.objects.create(url=site, title=title_tag.string)
+            existing_page = Page.objects.create(url=site, title=title_tag.string)
         
-        new_page.link_set.all().delete()
+        existing_link_urls = [link.url for link in existing_page.link_set.all()]
 
 
-
+        new_page = Page.objects.create(url=site, title=title_tag.string)
         for link in soup.find_all('a', class_='chapter-name'):
             link_url = link.get('href')
             link_title = link.string
             
-            Link.objects.create(url=link_url, title=link_title, page= new_page)
+
+            if link_url not in existing_link_urls:
+                Link.objects.create(url=link_url, title=link_title, page=new_page, is_new=True)
+            else:
+                Link.objects.create(url=link_url, title=link_title, page=new_page, is_new=False)
+        
+        existing_page.link_set.all().delete()
+        existing_page.delete()
+            
         
 
         

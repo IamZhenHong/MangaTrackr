@@ -104,11 +104,17 @@
                     {% for link in links %}
                         <tr>
                             <td>{{ link.title }}</td>
-                            <td><a href="{{ link.url }}">{{ link.title }}</a></td>
+                            <td>
+                                <a href="{{ link.url }}">{{ link.title }}</a>
+                                {% if link.is_new %}
+                                    <span class="badge badge-success">New</span>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            
         {% endif %}
     </div>
 </body>

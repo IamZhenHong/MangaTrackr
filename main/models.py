@@ -15,6 +15,7 @@ class Link(models.Model):
     url = models.CharField(max_length=200, null=True, blank=True)
     title = models.CharField(max_length=200, null=True, blank=True)
     page = models.ForeignKey('Page', on_delete=models.CASCADE, null=True, blank=True)
+    is_new = models.BooleanField(default=False)
     def __str__(self):
         if self.title:
             return self.title
