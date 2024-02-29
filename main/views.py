@@ -5,8 +5,11 @@ import requests
 from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+
 # Create your views here.
 
+@login_required(login_url='/login/')
 def scrape(request):
     error_message = None  # Initialize error message
     pages = Page.objects.all()
@@ -65,7 +68,8 @@ def scrape(request):
         links = Page.objects.first().link_set.all()
         
         return render(request, 'main/result.html', {'error_message': error_message, 'links': links, 'pages': pages})
-    
+
+@login_required(login_url='/login/')
 def delete(request):
     Link.objects.all().delete()
     return render(request, 'main/result.html', {'links': []})
