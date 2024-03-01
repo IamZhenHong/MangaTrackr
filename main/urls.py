@@ -3,5 +3,5 @@ from django.urls import path
 from main import views
 urlpatterns = [
     path("scrape/", views.scrape, name="scrape"),
-    path("delete/", views.delete, name="delete"),
+    path("delete/<str:title>/", views.delete, name="delete"),
 ]

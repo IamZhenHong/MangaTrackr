@@ -1,11 +1,6 @@
-{% extends 'base.html'}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Result</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    
+{% extends 'main/base.html'%}
+
+    {% block styles %}
     <style>
         /* Add your CSS styles here */
         body {
@@ -53,7 +48,9 @@
             background-color: #f2f2f2;
         }
     </style>
-</head>
+    {% endblock %}
+
+{% block body %}
 <body>
     <h1> Welcome to MangaUpdates, a page that helps you access your favorite mangas and also track new updates</h1>
     <h1>Result</h1>
@@ -62,7 +59,7 @@
     {% endif %}
     <div class="row">
         <div class="col-md-12">
-            <form action="/" method="POST" class="mt-3">
+            <form action="/main/scrape/" method="POST" class="mt-3">
                 {% csrf_token %}
                 <div class="form-group">
                     <input class="form-control" name="site" type="text" id="site" placeholder="enter site address">
@@ -72,10 +69,18 @@
                 </div>
             </form>
             <div class="form-group mt-2">
-                <a class="btn btn-primary" href="/delete">Delete</a>
+                {% if selected_page_title %}
+                    <a class="btn btn-primary" href="/main/delete/{{ selected_page_title }}">Delete</a>
+                {% endif %}
+                
+
+            </div>
+            <div>
+                <p> {{ selected_page_title }} </p>
+        
             </div>
             <div class="form-group mt-2">
-                <form method="POST" action="/">
+                <form method="POST" action="/main/scrape/">
                         {% csrf_token %}
                     <label for="item_dropdown">Manga list:</label>
                     <select id="item_dropdown" name="selected_item">
@@ -120,3 +125,5 @@
     </div>
 </body>
 </html>
+
+{% endblock %}

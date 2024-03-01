@@ -56,23 +56,33 @@ def scrape(request):
         
         existing_page.link_set.all().delete()
         existing_page.delete()
-            
-        
-
-        
-
         links = Link.objects.filter(page=new_page)
+
         return render(request, 'main/result.html', {'error_message': error_message, 'links': links, 'pages': pages,'selected_page_title': title_tag.string})
 
     else:
-        links = Page.objects.first().link_set.all()
-        
-        return render(request, 'main/result.html', {'error_message': error_message, 'links': links, 'pages': pages})
+        if Page.objects.count() > 0:
+            links = Page.objects.first().link_set.all()
+            selected_page_title = Page.objects.first().title
+            return render(request, 'main/result.html', {'error_message': error_message, 'links': links, 'pages': pages, 'selected_page_title': selected_page_title})
+        else:
+            return render(request, 'main/result.html', {'error_message': error_message, 'links': [], 'pages': []})
+
 
 @login_required(login_url='/login/')
-def delete(request):
-    Link.objects.all().delete()
-    return render(request, 'main/result.html', {'links': []})
+def delete(request, title):
+    try:
+        page = Page.objects.get(title=title)
+    except Page.DoesNotExist:
+        return render(request, 'main/result.html', {'links': [], 'pages': []})
+    page.link_set.all().delete()
+    page.delete()
+    if Page.objects.count() > 0:
+        random_page = Page.objects.first()
+        links = random_page.link_set.all()
+        return render(request, 'main/result.html', {'links': links, 'pages': Page.objects.all(), 'selected_page_title': random_page.title})
+    else:
+        return render(request, 'main/result.html', {'links': [], 'pages': []})
 
 
 
